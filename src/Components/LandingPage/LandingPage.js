@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 
 import {
   Alert,
@@ -6,6 +6,9 @@ import {
   Button,
   ExpandableSection,
   Popover,
+  Tab,
+  Tabs,
+  TabTitleText,
   Text,
   TextContent,
 } from '@patternfly/react-core';
@@ -20,8 +23,9 @@ import {
   PageHeader,
   PageHeaderTitle,
 } from '@redhat-cloud-services/frontend-components';
+import AsyncComponent from '@redhat-cloud-services/frontend-components/AsyncComponent';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 
 import './LandingPage.scss';
 
@@ -32,6 +36,8 @@ import DocumentationButton from '../sharedComponents/DocumentationButton';
 export const LandingPage = () => {
   const [showBetaAlert, setShowBetaAlert] = useState(true);
   const [showHint, setShowHint] = useState(true);
+  const [activeTabKey, setActiveTabkey] = useState(0);
+  const handleTabClick = (_event, tabIndex) => setActiveTabkey(tabIndex);
 
   const { quickStarts } = useChrome();
   const { isBeta } = useGetEnvironment();
@@ -178,7 +184,35 @@ export const LandingPage = () => {
             </p>
           </ExpandableSection>
         )}
-        <ImagesTable />
+        <Tabs
+          defaultActiveKey={0}
+          activeKey={activeTabKey}
+          onSelect={handleTabClick}
+          aria-label="Tabs in image builder screen"
+          role="region"
+          mountOnEnter
+        >
+          <Tab
+            eventKey={0}
+            title={<TabTitleText>Traditional (RPM-DNF)</TabTitleText>}
+          >
+            <ImagesTable />
+          </Tab>
+          <Tab
+            eventKey={1}
+            title={<TabTitleText>Immutable (OSTree)</TabTitleText>}
+          >
+            <Suspense fallback="loading...">
+              <AsyncComponent
+                appName="edge"
+                module="./Images"
+                //  historyProp={useHistory}
+                navigateProp={useNavigate}
+                locationProp={useLocation}
+              />
+            </Suspense>
+          </Tab>
+        </Tabs>
       </section>
       <Outlet />
     </React.Fragment>

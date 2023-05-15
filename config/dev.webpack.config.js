@@ -13,6 +13,30 @@ const webpackProxy = {
     '/beta/insights/image-builder',
     '/preview/insights/image-builder',
   ],
+  routes: {
+    ...(process.env.CONFIG_PORT && {
+      [`${process.env.BETA ? '/beta' : ''}/config`]: {
+        host: `http://localhost:${process.env.CONFIG_PORT}`,
+      },
+    }),
+    ...(process.env.LOCAL_API && {
+      ...(process.env.LOCAL_API.split(',') || []).reduce((acc, curr) => {
+        const [appName, appConfig] = (curr || '').split(':');
+        const [appPort = 8003, protocol = 'http'] = appConfig.split('~');
+        return {
+          ...acc,
+          [`/apps/${appName}`]: { host: `${protocol}://localhost:${appPort}` },
+          // [`/insights/${appName}`]: { host: `${protocol}://localhost:${appPort}` },
+          // [`/beta/insights/${appName}`]: { host: `${protocol}://localhost:${appPort}` },
+          [`/beta/apps/${appName}`]: {
+            host: `${protocol}://localhost:${appPort}`,
+          },
+        };
+      }, {}),
+    }),
+  },
+  routesPath:
+    process.env.DEV_ROUTES_PATH && resolve(process.env.DEV_ROUTES_PATH),
 };
 
 const { config: webpackConfig, plugins } = config({
