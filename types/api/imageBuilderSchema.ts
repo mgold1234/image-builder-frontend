@@ -7,7 +7,7 @@
 export interface paths {
   "/version": {
     /**
-     * get the service version 
+     * get the service version
      * @description get the service version
      */
     get: operations["getVersion"];
@@ -51,12 +51,12 @@ export interface paths {
   };
   "/composes/{composeId}": {
     /**
-     * get status of an image compose 
+     * get status of an image compose
      * @description status of an image compose
      */
     get: operations["getComposeStatus"];
     /**
-     * delete a compose 
+     * delete a compose
      * @description Deletes a compose, the compose will still count towards quota.
      */
     delete: operations["deleteCompose"];
@@ -69,35 +69,35 @@ export interface paths {
   };
   "/composes/{composeId}/metadata": {
     /**
-     * get metadata of an image compose 
+     * get metadata of an image compose
      * @description metadata for an image compose
      */
     get: operations["getComposeMetadata"];
   };
   "/composes/{composeId}/clone": {
     /**
-     * clone a compose 
+     * clone a compose
      * @description Clones a compose. Only composes with the 'aws' image type currently support cloning.
      */
     post: operations["cloneCompose"];
   };
   "/composes/{composeId}/clones": {
     /**
-     * get clones of a compose 
+     * get clones of a compose
      * @description Returns a list of all the clones which were started for a compose
      */
     get: operations["getComposeClones"];
   };
   "/clones/{id}": {
     /**
-     * get status of a compose clone 
+     * get status of a compose clone
      * @description status of a clone
      */
     get: operations["getCloneStatus"];
   };
   "/compose": {
     /**
-     * compose image 
+     * compose image
      * @description compose image
      */
     post: operations["composeImage"];
@@ -168,7 +168,7 @@ export interface components {
     };
     ImageStatus: {
       /**
-       * @example success 
+       * @example success
        * @enum {string}
        */
       status: "success" | "failure" | "pending" | "building" | "uploading" | "registering";
@@ -218,7 +218,7 @@ export interface components {
     ImageRequest: {
       /**
        * @description CPU architecture of the image, x86_64 and aarch64 are currently supported.
-       *  
+       *
        * @enum {string}
        */
       architecture: "x86_64" | "aarch64";
@@ -227,7 +227,7 @@ export interface components {
       ostree?: components["schemas"]["OSTree"];
     };
     /** @enum {string} */
-    ImageTypes: "aws" | "azure" | "edge-commit" | "edge-installer" | "gcp" | "guest-image" | "image-installer" | "vsphere" | "ami" | "rhel-edge-commit" | "rhel-edge-installer" | "vhd";
+    ImageTypes: "aws" |"aws.s3"| "azure" | "edge-commit" | "edge-installer" | "gcp" | "guest-image" | "image-installer" | "vsphere" | "ami" | "rhel-edge-commit" | "rhel-edge-installer" | "vhd";
     ComposesResponse: {
       meta: {
         count: number;
@@ -286,7 +286,7 @@ export interface components {
        *     the users of that domain. For example, 'google.com' or 'example.com'.
        *     If not specified, the imported Compute Node image is not shared with any
        *     account.
-       *  
+       *
        * @example [
        *   "user:alice@example.com",
        *   "serviceAccount:my-other-app@appspot.gserviceaccount.com",
@@ -300,7 +300,7 @@ export interface components {
       /**
        * @description ID of the source that will be used to resolve the tenant and subscription IDs.
        * Do not provide a tenant_id or subscription_id when providing a source_id.
-       *  
+       *
        * @example 12345
        */
       source_id?: string;
@@ -309,20 +309,20 @@ export interface components {
        * to find it in the Azure Portal:
        * https://docs.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant
        * When providing a tenant_id, also be sure to provide a subscription_id and do not include a source_id.
-       *  
+       *
        * @example 5c7ef5b6-1c3f-4da0-a622-0b060239d7d7
        */
       tenant_id?: string;
       /**
        * @description ID of subscription where the image should be uploaded.
        * When providing a subscription_id, also be sure to provide a tenant_id and do not include a source_id.
-       *  
+       *
        * @example 4e5d8b2c-ab24-4413-90c5-612306e809e2
        */
       subscription_id?: string;
       /**
        * @description Name of the resource group where the image should be uploaded.
-       *  
+       *
        * @example ToucanResourceGroup
        */
       resource_group: string;
@@ -330,7 +330,7 @@ export interface components {
        * @description Name of the created image.
        * Must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens.
        * The total length is limited to 60 characters.
-       *  
+       *
        * @example LinuxImage
        */
       image_name?: string;
@@ -365,7 +365,7 @@ export interface components {
       /** @example 2040324 */
       organization: number;
       /**
-       * Format: password 
+       * Format: password
        * @example my-secret-key
        */
       "activation-key": string;
@@ -377,8 +377,8 @@ export interface components {
       insights: boolean;
       /**
        * @description Optional flag to use rhc to register the system, which also always enables Insights.
-       *  
-       * @default false 
+       *
+       * @default false
        * @example true
        */
       rhc?: boolean;
@@ -394,7 +394,7 @@ export interface components {
       ref?: string;
       /**
        * @description Can be either a commit (example: 02604b2da6e954bd34b8b82a835e5a77d2b60ffa), or a branch-like reference (example: rhel/8/x86_64/edge)
-       *  
+       *
        * @example rhel/8/x86_64/edge
        */
       parent?: string;
@@ -440,17 +440,17 @@ export interface components {
     Repository: {
       rhsm: boolean;
       /**
-       * Format: uri 
+       * Format: uri
        * @example https://cdn.redhat.com/content/dist/rhel8/8/x86_64/baseos/os/
        */
       baseurl?: string;
       /**
-       * Format: uri 
+       * Format: uri
        * @example http://mirrorlist.centos.org/?release=8-stream&arch=aarch64&repo=BaseOS
        */
       mirrorlist?: string;
       /**
-       * Format: uri 
+       * Format: uri
        * @example https://mirrors.fedoraproject.org/metalink?repo=fedora-32&arch=x86_64
        */
       metalink?: string;
@@ -458,7 +458,7 @@ export interface components {
       check_gpg?: boolean;
       /**
        * @description Enables gpg verification of the repository metadata
-       *  
+       *
        * @default false
        */
       check_repo_gpg?: boolean;
@@ -481,17 +481,17 @@ export interface components {
        */
       baseurl?: (string)[];
       /**
-       * Format: uri 
+       * Format: uri
        * @example http://mirrorlist.centos.org/?release=8-stream&arch=aarch64&repo=BaseOS
        */
       mirrorlist?: string;
       /**
-       * Format: uri 
+       * Format: uri
        * @example https://mirrors.fedoraproject.org/metalink?repo=fedora-32&arch=x86_64
        */
       metalink?: string;
       /**
-       * @description GPG key used to sign packages in this repository. Can be a gpg key or a URL 
+       * @description GPG key used to sign packages in this repository. Can be a gpg key or a URL
        * @example [
        *   "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmQINBGAcScoBEADLf8YHkezJ6adlMYw7aGGIlJalt8Jj2x/B2K+hIfIuxGtpVj7e\nLRgDU76jaT5pVD5mFMJ3pkeneR/cTmqqQkNyQshX2oQXwEzUSb1CNMCfCGgkX8Q2\nzZkrIcCrF0Q2wrKblaudhU+iVanADsm18YEqsb5AU37dtUrM3QYdWg9R+XiPfV8R\nKBjT03vVBOdMSsY39LaCn6Ip1Ovp8IEo/IeEVY1qmCOPAaK0bJH3ufg4Cueks+TS\nwQWTeCLxuZL6OMXoOPKwvMQfxbg1XD8vuZ0Ktj/cNH2xau0xmsAu9HJpekvOPRxl\nyqtjyZfroVieFypwZgvQwtnnM8/gSEu/JVTrY052mEUT7Ccb74kcHFTFfMklnkG/\n0fU4ARa504H3xj0ktbe3vKcPXoPOuKBVsHSv00UGYAyPeuy+87cU/YEhM7k3SVKj\n6eIZgyiMO0wl1YGDRKculwks9A+ulkg1oTb4s3zmZvP07GoTxW42jaK5WS+NhZee\n860XoVhbc1KpS+jfZojsrEtZ8PbUZ+YvF8RprdWArjHbJk2JpRKAxThxsQAsBhG1\n0Lux2WaMB0g2I5PcMdJ/cqjo08ccrjBXuixWri5iu9MXp8qT/fSzNmsdIgn8/qZK\ni8Qulfu77uqhW/wt2btnitgRsqjhxMujYU4Zb4hktF8hKU/XX742qhL5KwARAQAB\ntDFGZWRvcmEgKDM1KSA8ZmVkb3JhLTM1LXByaW1hcnlAZmVkb3JhcHJvamVjdC5v\ncmc+iQJOBBMBCAA4FiEEeH6mrhFH7uVsQLMM20Y5cZhnxY8FAmAcScoCGw8FCwkI\nBwIGFQoJCAsCBBYCAwECHgECF4AACgkQ20Y5cZhnxY+NYA/7BYpglySAZYHhjyKh\n/+f6zPfVvbH20Eq3kI7OFBN0nLX+BU1muvS+qTuS3WLrB3m3GultpKREJKLtm5ED\n1rGzXAoT1yp9YI8LADdMCCOyjAjsoWU87YUuC+/bnjrTeR2LROCfyPC76W985iOV\nm5S+bsQDw7C2LrldAM4MDuoyZ1SitGaZ4KQLVt+TEa14isYSGCjzo7PY8V3JOk50\ngqWg82N/bm2EzS7T83WEDb1lvj4IlvxgIqKeg11zXYxmrYSZJJCfvzf+lNS6uxgH\njx/J0ylZ2LibGr6GAAyO9UWrAZSwSM0EcjT8wECnxkSDuyqmWwVvNBXuEIV8Oe3Y\nMiU1fJN8sd7DpsFx5M+XdnMnQS+HrjTPKD3mWrlAdnEThdYV8jZkpWhDys3/99eO\nhk0rLny0jNwkauf/iU8Oc6XvMkjLRMJg5U9VKyJuWWtzwXnjMN5WRFBqK4sZomMM\nftbTH1+5ybRW/A3vBbaxRW2t7UzNjczekSZEiaLN9L/HcJCIR1QF8682DdAlEF9d\nk2gQiYSQAaaJ0JJAzHvRkRJLLgK2YQYiHNVy2t3JyFfsram5wSCWOfhPeIyLBTZJ\nvrpNlPbefsT957Tf2BNIugzZrC5VxDSKkZgRh1VGvSIQnCyzkQy6EU2qPpiW59G/\nhPIXZrKocK3KLS9/izJQTRltjMA=\n=PfT7\n-----END PGP PUBLIC KEY BLOCK-----\n"
        * ]
@@ -531,7 +531,7 @@ export interface components {
       /**
        * @description An array of AWS account IDs as described in
        * https://docs.aws.amazon.com/IAM/latest/UserGuide/console_account-alias.html
-       *  
+       *
        * @example [
        *   "123456789012"
        * ]
@@ -546,7 +546,7 @@ export interface components {
     };
     CloneResponse: {
       /**
-       * Format: uuid 
+       * Format: uuid
        * @example 123e4567-e89b-12d3-a456-426655440000
        */
       id: string;
@@ -564,7 +564,7 @@ export type external = Record<string, never>;
 export interface operations {
 
   /**
-   * get the service version 
+   * get the service version
    * @description get the service version
    */
   getVersion: {
@@ -615,7 +615,7 @@ export interface operations {
     parameters: {
       path: {
         /**
-         * @description distribution for which to look up available architectures 
+         * @description distribution for which to look up available architectures
          * @example rhel-84
          */
         distribution: string;
@@ -631,7 +631,7 @@ export interface operations {
     };
   };
   /**
-   * get status of an image compose 
+   * get status of an image compose
    * @description status of an image compose
    */
   getComposeStatus: {
@@ -651,7 +651,7 @@ export interface operations {
     };
   };
   /**
-   * delete a compose 
+   * delete a compose
    * @description Deletes a compose, the compose will still count towards quota.
    */
   deleteCompose: {
@@ -667,7 +667,7 @@ export interface operations {
     };
   };
   /**
-   * get metadata of an image compose 
+   * get metadata of an image compose
    * @description metadata for an image compose
    */
   getComposeMetadata: {
@@ -687,7 +687,7 @@ export interface operations {
     };
   };
   /**
-   * clone a compose 
+   * clone a compose
    * @description Clones a compose. Only composes with the 'aws' image type currently support cloning.
    */
   cloneCompose: {
@@ -713,7 +713,7 @@ export interface operations {
     };
   };
   /**
-   * get clones of a compose 
+   * get clones of a compose
    * @description Returns a list of all the clones which were started for a compose
    */
   getComposeClones: {
@@ -739,7 +739,7 @@ export interface operations {
     };
   };
   /**
-   * get status of a compose clone 
+   * get status of a compose clone
    * @description status of a clone
    */
   getCloneStatus: {
@@ -759,7 +759,7 @@ export interface operations {
     };
   };
   /**
-   * compose image 
+   * compose image
    * @description compose image
    */
   composeImage: {

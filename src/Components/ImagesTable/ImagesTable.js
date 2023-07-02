@@ -246,7 +246,9 @@ const ImagesTable = () => {
                         <Release release={compose.request.distribution} />
                       </Td>
                       <Td dataLabel="Target">
-                        <Target composeId={id} />
+                        <Target
+                          type={compose.request.image_requests[0].image_type}
+                        />
                       </Td>
                       <Td dataLabel="Status">
                         <ImageBuildStatus

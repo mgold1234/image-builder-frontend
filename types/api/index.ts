@@ -18,3 +18,4 @@ export type SourceUploadInfoResponse =
 export type RepositoryCollectionResponse =
   contentSourcesComponents['schemas']['api.RepositoryCollectionResponse'];
 export type Distributions = imageBuilderComponents['schemas']['Distributions'];
+export type ImageTypes = imageBuilderComponents['schemas']['ImageTypes'];
