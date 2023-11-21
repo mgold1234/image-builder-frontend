@@ -317,6 +317,10 @@ export const mockComposes: ComposesResponseItem[] = [
         ],
         openscap: {
           profile_id: 'xccdf_org.ssgproject.content_profile_cis_workstation_l1',
+          profile_name:
+            'CIS Red Hat Enterprise Linux 8 Benchmark for Level 1 - Workstation',
+          profile_description:
+            'This profile defines a baseline that aligns to the "Level 1 - Workstation" configuration from the Center for Internet Security® Red Hat Enterprise Linux 8 Benchmark™, v2.0.0, released 2022-02-23.  This profile includes Center for Internet Security® Red Hat Enterprise Linux 8 CIS Benchmarks™ content.',
         },
       },
     },
@@ -814,6 +818,10 @@ export const mockStatus = (composeId: string): ComposeStatus => {
           openscap: {
             profile_id:
               'xccdf_org.ssgproject.content_profile_cis_workstation_l1',
+            profile_name:
+              ' CIS Red Hat Enterprise Linux 8 Benchmark for Level 1 - Workstation',
+            profile_description:
+              'This profile defines a baseline that aligns to the "Level 1 - Workstation" configuration from the Center for Internet Security® Red Hat Enterprise Linux 8 Benchmark™, v2.0.0, released 2022-02-23.  This profile includes Center for Internet Security® Red Hat Enterprise Linux 8 CIS Benchmarks™ content.',
           },
         },
       },

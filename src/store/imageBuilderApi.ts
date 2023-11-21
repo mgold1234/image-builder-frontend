@@ -295,8 +295,8 @@ export type CustomRepository = {
 };
 export type OpenScap = {
   profile_id: string;
-  profile_name?: string;
-  profile_description?: string;
+  profile_name: string;
+  profile_description: string;
 };
 export type Filesystem = {
   mountpoint: string;
