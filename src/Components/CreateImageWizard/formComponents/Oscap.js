@@ -160,7 +160,7 @@ const ProfileSelector = ({ input }) => {
             profiles.map((profile_id) => {
               return (
                 <OScapSelectOption
-                  key={`${profile_id}-outer`}
+                  key={profile_id}
                   profile_id={profile_id}
                   setProfileName={setProfileName}
                 />
@@ -190,7 +190,7 @@ const ProfileSelector = ({ input }) => {
 
 const OScapNoneOption = () => {
   return (
-    <SelectOption value={'none'}>
+    <SelectOption value={undefined}>
       <p>{'None'}</p>
     </SelectOption>
   );
@@ -198,36 +198,6 @@ const OScapNoneOption = () => {
 
 OScapNoneOption.propTypes = {
   setProfileName: PropTypes.any,
-};
-
-ProfileSelector.propTypes = {
-  input: PropTypes.any,
-  showSelector: PropTypes.bool,
-};
-
-/**
- * Component to prompt the use with two choices:
- * - to add a profile, in which case the ProfileSelector will allow the user to
- *   pick a profile to be stored in the `oscap-profile` variable.
- * - to not add a profile, in which case the `oscap-profile` form state goes
- *   undefined.
- */
-const AddProfile = ({ input }) => {
-  return (
-    <>
-      <ProfileSelector input={input} />
-      <OscapProfileInformation />
-    </>
-  );
-};
-
-AddProfile.propTypes = {
-  input: PropTypes.object,
-};
-
-export const Oscap = ({ ...props }) => {
-  const { input } = useFieldApi(props);
-  return <AddProfile input={input} />;
 };
 
 const OScapSelectOption = ({ profile_id, setProfileName, input }) => {
@@ -262,4 +232,34 @@ OScapSelectOption.propTypes = {
   profile_id: PropTypes.string,
   setProfileName: PropTypes.any,
   input: PropTypes.string,
+};
+
+ProfileSelector.propTypes = {
+  input: PropTypes.any,
+  showSelector: PropTypes.bool,
+};
+
+/**
+ * Component to prompt the use with two choices:
+ * - to add a profile, in which case the ProfileSelector will allow the user to
+ *   pick a profile to be stored in the `oscap-profile` variable.
+ * - to not add a profile, in which case the `oscap-profile` form state goes
+ *   undefined.
+ */
+const AddProfile = ({ input }) => {
+  return (
+    <>
+      <ProfileSelector input={input} />
+      <OscapProfileInformation />
+    </>
+  );
+};
+
+AddProfile.propTypes = {
+  input: PropTypes.object,
+};
+
+export const Oscap = ({ ...props }) => {
+  const { input } = useFieldApi(props);
+  return <AddProfile input={input} />;
 };
