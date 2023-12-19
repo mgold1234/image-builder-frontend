@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 
-import useFieldApi from "@data-driven-forms/react-form-renderer/use-field-api";
-import useFormApi from "@data-driven-forms/react-form-renderer/use-form-api";
+import useFieldApi from '@data-driven-forms/react-form-renderer/use-field-api';
+import useFormApi from '@data-driven-forms/react-form-renderer/use-form-api';
 import {
   Alert,
   FormGroup,
@@ -10,24 +10,23 @@ import {
   TextContent,
   Text,
   Button,
-} from "@patternfly/react-core";
+} from '@patternfly/react-core';
 import {
   Select,
   SelectOption,
   SelectVariant,
-} from "@patternfly/react-core/deprecated";
-import { HelpIcon } from "@patternfly/react-icons";
-import PropTypes from "prop-types";
+} from '@patternfly/react-core/deprecated';
+import { HelpIcon } from '@patternfly/react-icons';
+import PropTypes from 'prop-types';
 
-import OscapProfileInformation from "./OscapProfileInformation";
-import { OScapSelectOption } from "./MyComp";
+import OscapProfileInformation from './OscapProfileInformation';
 
 import {
   useGetOscapCustomizationsQuery,
   useGetOscapProfilesQuery,
-} from "../../../store/imageBuilderApi";
-import { reinitFileSystemConfiguratioStep } from "../steps/fileSystemConfiguration";
-import { reinitPackagesStep } from "../steps/packages";
+} from '../../../store/imageBuilderApi';
+import { reinitFileSystemConfiguratioStep } from '../steps/fileSystemConfiguration';
+import { reinitPackagesStep } from '../steps/packages';
 
 /**
  * Every time there is change on this form step's state, reinitialise the steps
@@ -47,8 +46,8 @@ const reinitDependingSteps = (change) => {
  */
 const ProfileSelector = ({ input }) => {
   const { change, getState } = useFormApi();
-  const [profile, setProfile] = useState(getState()?.values?.["oscap-profile"]);
-  const [profileName, setProfileName] = useState("");
+  const [profile, setProfile] = useState(getState()?.values?.['oscap-profile']);
+  const [profileName, setProfileName] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const {
     data: profiles,
@@ -57,12 +56,12 @@ const ProfileSelector = ({ input }) => {
     isError,
     refetch,
   } = useGetOscapProfilesQuery({
-    distribution: getState()?.values?.["release"],
+    distribution: getState()?.values?.['release'],
   });
 
   const { data } = useGetOscapCustomizationsQuery(
     {
-      distribution: getState()?.values?.["release"],
+      distribution: getState()?.values?.['release'],
       profile: profile,
     },
     {
@@ -94,7 +93,7 @@ const ProfileSelector = ({ input }) => {
     setIsOpen(false);
     change(input.name, selection);
     reinitDependingSteps(change);
-    change("file-system-config-radio", "manual");
+    change('file-system-config-radio', 'manual');
   };
 
   return (
@@ -155,7 +154,7 @@ const ProfileSelector = ({ input }) => {
         {isSuccess &&
           [
             <SelectOption value={undefined} key="none">
-              <p>{"None"}</p>
+              <p>{'None'}</p>
             </SelectOption>,
           ].concat(
             profiles.map((profile_id) => {
@@ -191,8 +190,8 @@ const ProfileSelector = ({ input }) => {
 
 const OScapNoneOption = () => {
   return (
-    <SelectOption value={"none"}>
-      <p>{"None"}</p>
+    <SelectOption value={'none'}>
+      <p>{'None'}</p>
     </SelectOption>
   );
 };
@@ -234,7 +233,7 @@ export const Oscap = ({ ...props }) => {
 const OScapSelectOption = ({ profile_id, setProfileName, input }) => {
   const { getState } = useFormApi();
   const { data } = useGetOscapCustomizationsQuery({
-    distribution: getState()?.values?.["release"],
+    distribution: getState()?.values?.['release'],
     profile: profile_id,
   });
 
