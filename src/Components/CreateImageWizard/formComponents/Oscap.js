@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
-import useFieldApi from '@data-driven-forms/react-form-renderer/use-field-api';
-import useFormApi from '@data-driven-forms/react-form-renderer/use-form-api';
+import useFieldApi from "@data-driven-forms/react-form-renderer/use-field-api";
+import useFormApi from "@data-driven-forms/react-form-renderer/use-form-api";
 import {
   Alert,
   FormGroup,
@@ -10,23 +10,24 @@ import {
   TextContent,
   Text,
   Button,
-} from '@patternfly/react-core';
+} from "@patternfly/react-core";
 import {
   Select,
   SelectOption,
   SelectVariant,
-} from '@patternfly/react-core/deprecated';
-import { HelpIcon } from '@patternfly/react-icons';
-import PropTypes from 'prop-types';
+} from "@patternfly/react-core/deprecated";
+import { HelpIcon } from "@patternfly/react-icons";
+import PropTypes from "prop-types";
 
-import OscapProfileInformation from './OscapProfileInformation';
+import OscapProfileInformation from "./OscapProfileInformation";
+import { OScapSelectOption } from "./MyComp";
 
 import {
   useGetOscapCustomizationsQuery,
   useGetOscapProfilesQuery,
-} from '../../../store/imageBuilderApi';
-import { reinitFileSystemConfiguratioStep } from '../steps/fileSystemConfiguration';
-import { reinitPackagesStep } from '../steps/packages';
+} from "../../../store/imageBuilderApi";
+import { reinitFileSystemConfiguratioStep } from "../steps/fileSystemConfiguration";
+import { reinitPackagesStep } from "../steps/packages";
 
 /**
  * Every time there is change on this form step's state, reinitialise the steps
@@ -46,8 +47,8 @@ const reinitDependingSteps = (change) => {
  */
 const ProfileSelector = ({ input }) => {
   const { change, getState } = useFormApi();
-  const [profile, setProfile] = useState(getState()?.values?.['oscap-profile']);
-  const [profileName, setProfileName] = useState('');
+  const [profile, setProfile] = useState(getState()?.values?.["oscap-profile"]);
+  const [profileName, setProfileName] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const {
     data: profiles,
@@ -56,12 +57,12 @@ const ProfileSelector = ({ input }) => {
     isError,
     refetch,
   } = useGetOscapProfilesQuery({
-    distribution: getState()?.values?.['release'],
+    distribution: getState()?.values?.["release"],
   });
 
   const { data } = useGetOscapCustomizationsQuery(
     {
-      distribution: getState()?.values?.['release'],
+      distribution: getState()?.values?.["release"],
       profile: profile,
     },
     {
@@ -93,7 +94,7 @@ const ProfileSelector = ({ input }) => {
     setIsOpen(false);
     change(input.name, selection);
     reinitDependingSteps(change);
-    change('file-system-config-radio', 'manual');
+    change("file-system-config-radio", "manual");
   };
 
   return (
@@ -133,17 +134,34 @@ const ProfileSelector = ({ input }) => {
         placeholderText="Select a profile"
         typeAheadAriaLabel="Select a profile"
         isDisabled={!isSuccess}
-      >
-        {isSuccess &&
-          [
-            <SelectOption value={undefined} key="none">
-              <p>{'None'}</p>
-            </SelectOption>,
+        onFilter={(_event, value) => {
+          // value is user input
+          return [
+            <OScapNoneOption setProfileName={setProfileName} key={profiles} />,
           ].concat(
             profiles.map((profile_id, index) => {
               return (
                 <OScapSelectOption
-                  key={profile_id}
+                  key={index}
+                  profile_id={profile_id}
+                  setProfileName={setProfileName}
+                  input={value}
+                />
+              );
+            })
+          );
+        }}
+      >
+        {isSuccess &&
+          [
+            <SelectOption value={undefined} key="none">
+              <p>{"None"}</p>
+            </SelectOption>,
+          ].concat(
+            profiles.map((profile_id) => {
+              return (
+                <OScapSelectOption
+                  key={`${profile_id}-outer`}
                   profile_id={profile_id}
                   setProfileName={setProfileName}
                 />
@@ -173,37 +191,13 @@ const ProfileSelector = ({ input }) => {
 
 const OScapNoneOption = () => {
   return (
-    <SelectOption value={undefined}>
-      <p>{'None'}</p>
+    <SelectOption value={"none"}>
+      <p>{"None"}</p>
     </SelectOption>
   );
 };
 
 OScapNoneOption.propTypes = {
-  setProfileName: PropTypes.any,
-};
-
-const OScapSelectOption = ({ profile_id, setProfileName }) => {
-  const { getState } = useFormApi();
-  const { data } = useGetOscapCustomizationsQuery({
-    distribution: getState()?.values?.['release'],
-    profile: profile_id,
-  });
-
-  return (
-    <SelectOption
-      value={data?.openscap?.profile_id}
-      onClick={() => {
-        setProfileName(data?.openscap?.profile_name);
-      }}
-    >
-      <p>{data?.openscap?.profile_name}</p>
-    </SelectOption>
-  );
-};
-
-OScapSelectOption.propTypes = {
-  profile_id: PropTypes.string,
   setProfileName: PropTypes.any,
 };
 
@@ -235,4 +229,38 @@ AddProfile.propTypes = {
 export const Oscap = ({ ...props }) => {
   const { input } = useFieldApi(props);
   return <AddProfile input={input} />;
+};
+
+const OScapSelectOption = ({ profile_id, setProfileName, input }) => {
+  const { getState } = useFormApi();
+  const { data } = useGetOscapCustomizationsQuery({
+    distribution: getState()?.values?.["release"],
+    profile: profile_id,
+  });
+
+  // could do fuzzysearch here if wanted
+  if (
+    input &&
+    !data?.openscap?.profile_name.toLowerCase().includes(input.toLowerCase())
+  ) {
+    return null;
+  }
+
+  return (
+    <SelectOption
+      key={profile_id}
+      value={profile_id}
+      onClick={() => {
+        setProfileName(data?.openscap?.profile_name);
+      }}
+    >
+      <p>{data?.openscap?.profile_name}</p>
+    </SelectOption>
+  );
+};
+
+OScapSelectOption.propTypes = {
+  profile_id: PropTypes.string,
+  setProfileName: PropTypes.any,
+  input: PropTypes.string,
 };
