@@ -136,12 +136,14 @@ const ProfileSelector = ({ input }) => {
       >
         {isSuccess &&
           [
-            <OScapNoneOption setProfileName={setProfileName} key={profiles} />,
+            <SelectOption value={undefined} key="none">
+              <p>{'None'}</p>
+            </SelectOption>,
           ].concat(
             profiles.map((profile_id, index) => {
               return (
                 <OScapSelectOption
-                  key={index}
+                  key={profile_id}
                   profile_id={profile_id}
                   setProfileName={setProfileName}
                 />
@@ -169,14 +171,9 @@ const ProfileSelector = ({ input }) => {
   );
 };
 
-const OScapNoneOption = ({ setProfileName }) => {
+const OScapNoneOption = () => {
   return (
-    <SelectOption
-      value={undefined}
-      onClick={() => {
-        setProfileName('None');
-      }}
-    >
+    <SelectOption value={undefined}>
       <p>{'None'}</p>
     </SelectOption>
   );
