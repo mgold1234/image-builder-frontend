@@ -92,3 +92,50 @@ div.pf-v5-c-alert.pf-m-inline.pf-m-plain.pf-m-warning {
 .pf-v5-c-wizard__outer-wrap {
     min-height: 602px;
 }
+.create-image-wizard-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.create-image-wizard-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pf-c-wizard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pf-c-wizard__outer-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pf-c-wizard__inner-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pf-c-wizard__main {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0; /* This is crucial for nested flex containers */
+}
+
+.pf-c-wizard__footer {
+  margin-top: auto;
+  background-color: var(--pf-global--BackgroundColor--100);
+  padding: var(--pf-global--spacer--md);
+  box-shadow: var(--pf-global--BoxShadow--sm-top);
+}

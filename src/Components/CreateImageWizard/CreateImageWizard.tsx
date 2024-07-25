@@ -225,9 +225,9 @@ const CreateImageWizard = ({ isEdit }: CreateImageWizardProps) => {
   };
 
   return (
-    <>
-      <ImageBuilderHeader inWizard />
-      <section className="pf-l-page__main-section pf-c-page__main-section">
+      <div className="create-image-wizard-container">
+          <ImageBuilderHeader inWizard />
+          <div className="create-image-wizard-content">
         <Wizard
           startIndex={startIndex}
           onClose={() => navigate(resolveRelPath(''))}
@@ -429,8 +429,8 @@ const CreateImageWizard = ({ isEdit }: CreateImageWizardProps) => {
             <ReviewStep snapshottingEnabled={snapshottingEnabled} />
           </WizardStep>
         </Wizard>
-      </section>
-    </>
+      </div>
+      </div>
   );
 };
 
