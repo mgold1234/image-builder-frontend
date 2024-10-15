@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
+const { resolve } = require('path');
 
 const CopyPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
@@ -99,6 +100,18 @@ module.exports = {
     }),
   },
   plugins: plugins,
+  resolve: {
+    modules: ['node_modules'],
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    alias: {
+      api: resolve(__dirname, './src/store/imageBuilderApi.ts'),
+      pathRes: resolve(__dirname, './src/Utilities/path.ts'),
+      getFeatureFlag: resolve(
+        __dirname,
+        './src/Utilities/useGetEnvironment.ts'
+      ),
+    },
+  },
   moduleFederation: {
     exposes: {
       './RootApp': path.resolve(__dirname, './src/AppEntry.tsx'),
