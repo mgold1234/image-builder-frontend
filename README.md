@@ -235,10 +235,13 @@ Creates a symbolic link (image-builder-frontend) pointing to the built frontend 
 Use this command after building the frontend to install it locally for development purposes.
 The symbolic link allows Cockpit to serve the frontend assets from your local development environment, making it easier to test changes in real-time without deploying to a remote server.
 ```bash
-npm run cockpit:build
+make devel-install
 
 ```bash
-npm run cockpit:install
+make build
+
+```bash
+make devel-uninstall
 
 ### Quick Reference
 | Directory                                                                                                            | Description                                |
