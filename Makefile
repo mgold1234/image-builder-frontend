@@ -39,6 +39,10 @@ devel-uninstall:
 	rm -rf pkg/lib/
 	rm -rf pkg/
 	rm -rf dist/
+	rm -rf cockpit/public/vendor*
+	rm -rf cockpit/public/src_*
+	rm -rf cockpit/public/main*
+
 
 .PHONY: all devel-install build devel-uninstall
 
