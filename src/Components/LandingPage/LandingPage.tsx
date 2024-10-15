@@ -18,7 +18,9 @@ import {
   ToolbarContent,
 } from '@patternfly/react-core';
 import { ExternalLinkAltIcon, HelpIcon } from '@patternfly/react-icons';
-import { useFlag } from '@unleash/proxy-client-react';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { useGetFeatureFlag } from 'getFeatureFlag';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import './LandingPage.scss';
@@ -55,7 +57,7 @@ export const LandingPage = () => {
     setActiveTabKey(tabIndex);
   };
 
-  const edgeParityFlag = useFlag('edgeParity.image-list');
+  const edgeParityFlag = useGetFeatureFlag('edgeParity.image-list');
 
   const imageList = (
     <>

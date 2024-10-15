@@ -10,7 +10,12 @@ import {
   PageSection,
 } from '@patternfly/react-core';
 import { WizardStepType } from '@patternfly/react-core/dist/esm/components/Wizard';
-import { useFlag } from '@unleash/proxy-client-react';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { useGetFeatureFlag } from 'getFeatureFlag';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { resolveRelPath } from 'pathRes';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import DetailsStep from './steps/Details';
@@ -64,7 +69,6 @@ import {
   selectImageTypes,
   addImageType,
 } from '../../store/wizardSlice';
-import { resolveRelPath } from '../../Utilities/path';
 import { ImageBuilderHeader } from '../sharedComponents/ImageBuilderHeader';
 
 type CustomWizardFooterPropType = {
@@ -134,8 +138,7 @@ const CreateImageWizard = ({ isEdit }: CreateImageWizardProps) => {
   // =========================TO REMOVE=======================
   const { data, isSuccess, isFetching, isError } =
     useListFeaturesQuery(undefined);
-
-  const snapshotsFlag = useFlag('image-builder.snapshots.enabled');
+  const snapshotsFlag = useGetFeatureFlag('image-builder.snapshots.enabled');
 
   const snapshottingEnabled = useMemo(() => {
     if (!snapshotsFlag) return false;
@@ -151,10 +154,12 @@ const CreateImageWizard = ({ isEdit }: CreateImageWizardProps) => {
 
   // =========================TO REMOVE=======================
 
-  // Feature flags
-  const isFirstBootEnabled = useFlag('image-builder.firstboot.enabled');
-  const complianceEnabled = useFlag('image-builder.compliance.enabled');
-
+  const complianceEnabled = useGetFeatureFlag(
+    'image-builder.compliance.enabled'
+  );
+  const isFirstBootEnabled = useGetFeatureFlag(
+    'image-builder.firstboot.enabled'
+  );
   // IMPORTANT: Ensure the wizard starts with a fresh initial state
   useEffect(() => {
     dispatch(initializeWizard());

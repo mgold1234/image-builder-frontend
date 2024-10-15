@@ -23,6 +23,12 @@ import {
   Thead,
   Tr,
 } from '@patternfly/react-table';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { useGetBlueprintsQuery } from 'api';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { resolveRelPath } from 'pathRes';
 import { useDispatch } from 'react-redux';
 import { NavigateFunction, useNavigate } from 'react-router-dom';
 
@@ -41,6 +47,7 @@ import Release from './Release';
 import { ExpiringStatus, CloudStatus } from './Status';
 import { AwsTarget, Target } from './Target';
 
+import { isOnPremise } from '../../constants';
 import {
   AWS_S3_EXPIRATION_TIME_IN_HOURS,
   OCI_STORAGE_EXPIRATION_TIME_IN_DAYS,
@@ -61,11 +68,9 @@ import {
   ComposesResponseItem,
   ComposeStatus,
   useGetBlueprintComposesQuery,
-  useGetBlueprintsQuery,
   useGetComposesQuery,
   useGetComposeStatusQuery,
 } from '../../store/imageBuilderApi';
-import { resolveRelPath } from '../../Utilities/path';
 import {
   computeHoursToExpiration,
   timestampToDisplayString,
@@ -153,8 +158,8 @@ const ImagesTable = () => {
     );
   }
 
-  if (!isSuccess) {
-    if (isError) {
+  if (!isOnPremise && !isSuccess) {
+    if (!isOnPremise && isError) {
       return (
         <Alert variant="warning" title="Service unavailable">
           <p>

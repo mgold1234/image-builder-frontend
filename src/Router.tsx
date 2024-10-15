@@ -1,12 +1,13 @@
 import React, { lazy, Suspense } from 'react';
 
-import { useFlag } from '@unleash/proxy-client-react';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { useGetFeatureFlag } from 'getFeatureFlag';
 import { Route, Routes } from 'react-router-dom';
 
 import EdgeImageDetail from './Components/edge/ImageDetails';
 import ShareImageModal from './Components/ShareImageModal/ShareImageModal';
 import { manageEdgeImagesUrlName } from './Utilities/edge';
-import { useFlagWithEphemDefault } from './Utilities/useGetEnvironment';
 
 const LandingPage = lazy(() => import('./Components/LandingPage/LandingPage'));
 const ImportImageWizard = lazy(
@@ -15,10 +16,8 @@ const ImportImageWizard = lazy(
 const CreateImageWizard = lazy(() => import('./Components/CreateImageWizard'));
 
 export const Router = () => {
-  const edgeParityFlag = useFlag('edgeParity.image-list');
-  const importExportFlag = useFlagWithEphemDefault(
-    'image-builder.import.enabled'
-  );
+  const edgeParityFlag = useGetFeatureFlag('edgeParity.image-list');
+  const importExportFlag = useGetFeatureFlag('image-builder.import.enabled');
   return (
     <Routes>
       <Route

@@ -8,7 +8,7 @@ export const PROVISIONING_API = '/api/provisioning/v1';
 export const COMPLIANCE_API = '/api/compliance/v2';
 export const CREATE_BLUEPRINT = `${IMAGE_BUILDER_API}/blueprints`;
 export const EDIT_BLUEPRINT = `${IMAGE_BUILDER_API}/blueprints`;
-
+export const isOnPremise = process.env.IS_ON_PREMISE;
 export const CDN_PROD_URL = 'https://cdn.redhat.com/';
 export const CDN_STAGE_URL = 'https://cdn.stage.redhat.com/';
 export const CONTENT_URL = '/insights/content/repositories';

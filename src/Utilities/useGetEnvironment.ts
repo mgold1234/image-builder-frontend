@@ -1,6 +1,8 @@
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
 import { useFlag } from '@unleash/proxy-client-react';
 
+import { isOnPremise } from '../constants';
+
 export const useGetEnvironment = () => {
   const { isBeta, isProd, getEnvironment } = useChrome();
   // Expose beta features in the ephemeral environment
@@ -25,4 +27,25 @@ export const useFlagWithEphemDefault = (
   const getFlag = useFlag(flag);
   const { getEnvironment } = useChrome();
   return (getEnvironment() === 'qa' && ephemDefault) || getFlag;
+};
+
+export const useGetFeatureFlag = (flagName: string) => {
+  // If it's the Cockpit app (on-premise), always return false
+  if (isOnPremise) {
+    return false;
+  }
+  switch (flagName) {
+    case 'edgeParity.image-list':
+    case 'image-builder.snapshots.enabled':
+    case 'image-builder.firstboot.enabled':
+    case 'image-builder.wsl.enabled':
+    case 'image-builder.compliance.enabled':
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      return useFlag(flagName);
+    case 'image-builder.import.enabled':
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      return useFlagWithEphemDefault(flagName);
+    default:
+      return undefined;
+  }
 };
