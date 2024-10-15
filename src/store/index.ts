@@ -3,6 +3,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import promiseMiddleware from 'redux-promise-middleware';
 
 import { blueprintsSlice } from './BlueprintSlice';
+import { blueprintsReducer } from './cockpitApi';
 import { complianceApi } from './complianceApi';
 import { contentSourcesApi } from './contentSourcesApi';
 import { edgeApi } from './edgeApi';
@@ -19,13 +20,26 @@ import wizardSlice, {
   selectImageTypes,
 } from './wizardSlice';
 
-export const reducer = combineReducers({
+import { isOnPremise } from '../constants';
+
+export const serviceReducer = combineReducers({
   [contentSourcesApi.reducerPath]: contentSourcesApi.reducer,
   [edgeApi.reducerPath]: edgeApi.reducer,
   [imageBuilderApi.reducerPath]: imageBuilderApi.reducer,
   [rhsmApi.reducerPath]: rhsmApi.reducer,
   [provisioningApi.reducerPath]: provisioningApi.reducer,
   [complianceApi.reducerPath]: complianceApi.reducer,
+  [blueprintsReducer.reducerPath]: blueprintsReducer.reducer,
+  notifications: notificationsReducer,
+  wizard: wizardSlice,
+  blueprints: blueprintsSlice.reducer,
+});
+
+export const onPremReducer = combineReducers({
+  [contentSourcesApi.reducerPath]: contentSourcesApi.reducer,
+  [imageBuilderApi.reducerPath]: imageBuilderApi.reducer,
+  [rhsmApi.reducerPath]: rhsmApi.reducer,
+  [blueprintsReducer.reducerPath]: blueprintsReducer.reducer,
   notifications: notificationsReducer,
   wizard: wizardSlice,
   blueprints: blueprintsSlice.reducer,
@@ -88,7 +102,7 @@ startAppListening({
 // Listener middleware must be prepended according to RTK docs:
 // https://redux-toolkit.js.org/api/createListenerMiddleware#basic-usage
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-export const middleware = (getDefaultMiddleware: Function) =>
+export const serviceMiddleware = (getDefaultMiddleware: Function) =>
   getDefaultMiddleware()
     .prepend(listenerMiddleware.middleware)
     .concat(
@@ -97,10 +111,29 @@ export const middleware = (getDefaultMiddleware: Function) =>
       imageBuilderApi.middleware,
       rhsmApi.middleware,
       provisioningApi.middleware,
-      complianceApi.middleware
+      complianceApi.middleware,
+      blueprintsReducer.middleware
     );
 
-export const store = configureStore({ reducer, middleware });
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export const onPremMiddleware = (getDefaultMiddleware: Function) =>
+  getDefaultMiddleware()
+    .prepend(listenerMiddleware.middleware)
+    .concat(
+      promiseMiddleware,
+      contentSourcesApi.middleware,
+      imageBuilderApi.middleware,
+      rhsmApi.middleware,
+      blueprintsReducer.middleware
+    );
+
+const rootReducer = isOnPremise ? onPremReducer : serviceReducer;
+const rootMiddleware = isOnPremise ? onPremMiddleware : serviceMiddleware;
+
+export const store = configureStore({
+  reducer: rootReducer,
+  middleware: rootMiddleware,
+});
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;
