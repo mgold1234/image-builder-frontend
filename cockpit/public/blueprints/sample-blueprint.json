@@ -1,0 +1,32 @@
+{
+  "links": {
+    "first": "https://api.example.com/blueprints?page=1",
+    "last": "https://api.example.com/blueprints?page=3"
+  },
+  "meta": {
+    "count": 28
+  },
+  "data": [
+    {
+      "id": "677b010b-e95e-4694-9813-d11d847f1bfc",
+      "name": "Dark Chocolate",
+      "description": "70% Dark Chocolate with crunchy cocoa nibs",
+      "version": 2,
+      "last_modified_at": "2021-09-09T14:38:00.000Z"
+    },
+    {
+      "id": "193482e4-4bd0-4898-a8bc-dc8c33ed669f",
+      "name": "Milk Chocolate",
+      "description": "40% Milk Chocolate with salted caramel",
+      "version": 1,
+      "last_modified_at": "2021-09-08T14:38:00.000Z"
+    },
+    {
+      "id": "c1cfa347-4c37-49b5-8e73-6aa1d1746cfa",
+      "name": "Multiple Target",
+      "description": "70% Dark Chocolate with crunchy cocoa nibs",
+      "version": 2,
+      "last_modified_at": "2021-09-09T14:38:00.000Z"
+    }
+]
+}
