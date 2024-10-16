@@ -6,17 +6,13 @@ import {
   GetBlueprintsApiResponse,
 } from './imageBuilderApi';
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import cockpit from '../../pkg/lib/cockpit';
 
 // Injects API endpoints into the service for querying blueprints
 export const blueprintsReducer = api.injectEndpoints({
   endpoints: (build) => ({
-    getArchitectures: build.query<
-      GetArchitecturesApiResponse,
-      GetArchitecturesApiArg
-    >({
-      query: (queryArg) => ({ url: `/architectures/${queryArg.distribution}` }),
-    }),
     getBlueprints: build.query<GetBlueprintsApiResponse, GetBlueprintsApiArg>({
       queryFn: async () => {
         try {

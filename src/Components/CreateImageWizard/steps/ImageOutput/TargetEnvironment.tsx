@@ -12,19 +12,13 @@ import {
   Tile,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { useGetArchitecturesQuery } from 'api';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { useGetFeatureFlag } from 'getFeatureFlag';
+import { useFlag } from '@unleash/proxy-client-react';
 
-// eslint-disable-next-line import/order
 import { useAppSelector, useAppDispatch } from '../../../../store/hooks';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-
-import { ImageTypes } from '../../../../store/imageBuilderApi';
+import {
+  ImageTypes,
+  useGetArchitecturesQuery,
+} from '../../../../store/imageBuilderApi';
 import { provisioningApi } from '../../../../store/provisioningApi';
 import {
   addImageType,
@@ -42,7 +36,7 @@ const TargetEnvironment = () => {
   const environments = useAppSelector(selectImageTypes);
   const distribution = useAppSelector(selectDistribution);
 
-  const wslFlag = useGetFeatureFlag('image-builder.wsl.enabled');
+  const wslFlag = useFlag('image-builder.wsl.enabled');
 
   const { data } = useGetArchitecturesQuery({
     distribution: distribution,

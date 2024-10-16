@@ -36,9 +36,7 @@ export const serviceReducer = combineReducers({
 });
 
 export const onPremReducer = combineReducers({
-  [contentSourcesApi.reducerPath]: contentSourcesApi.reducer,
   [imageBuilderApi.reducerPath]: imageBuilderApi.reducer,
-  [rhsmApi.reducerPath]: rhsmApi.reducer,
   [blueprintsReducer.reducerPath]: blueprintsReducer.reducer,
   notifications: notificationsReducer,
   wizard: wizardSlice,
@@ -121,9 +119,7 @@ export const onPremMiddleware = (getDefaultMiddleware: Function) =>
     .prepend(listenerMiddleware.middleware)
     .concat(
       promiseMiddleware,
-      contentSourcesApi.middleware,
       imageBuilderApi.middleware,
-      rhsmApi.middleware,
       blueprintsReducer.middleware
     );
 

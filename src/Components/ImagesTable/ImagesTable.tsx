@@ -93,6 +93,8 @@ const ImagesTable = () => {
       offset: blueprintsOffset,
     },
     {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       selectFromResult: ({ data }) => ({
         selectedBlueprintVersion: data?.data?.find(
           (blueprint: BlueprintItem) => blueprint.id === selectedBlueprintId
