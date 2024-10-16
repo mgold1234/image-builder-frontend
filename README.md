@@ -234,14 +234,15 @@ Creates the necessary directory in the user's local Cockpit share (~/.local/shar
 Creates a symbolic link (image-builder-frontend) pointing to the built frontend assets (cockpit/public).
 Use this command after building the frontend to install it locally for development purposes.
 The symbolic link allows Cockpit to serve the frontend assets from your local development environment, making it easier to test changes in real-time without deploying to a remote server.
-```bash
-make devel-install
 
 ```bash
 make build
+```
 
+To remove all build artifacts run
 ```bash
-make devel-uninstall
+make clean
+```
 
 ### Quick Reference
 | Directory                                                                                                            | Description                                |
