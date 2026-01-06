@@ -8,8 +8,16 @@ import {
 } from '@patternfly/react-core';
 import { MenuToggleElement } from '@patternfly/react-core/dist/esm/components/MenuToggle/MenuToggle';
 import { EllipsisVIcon } from '@patternfly/react-icons';
+import TOML from 'smol-toml';
 
+// The hosted UI exports JSON, while the Cockpit plugin exports TOML.
+// Because the blueprint formats differ, using the 'backendApi'
+// abstraction would be misleading.  Import and handle each environment
+// separately.
+import { useIsOnPremise } from '../../Hooks';
 import { selectSelectedBlueprintId } from '../../store/BlueprintSlice';
+import { useLazyExportBlueprintCockpitQuery } from '../../store/cockpit/cockpitApi';
+import type { Blueprint as CockpitExportResponse } from '../../store/cockpit/composerCloudApi';
 import { useAppSelector } from '../../store/hooks';
 import {
   BlueprintExportResponse,
@@ -25,6 +33,7 @@ interface BlueprintActionsMenuProps {
 export const BlueprintActionsMenu: React.FunctionComponent<
   BlueprintActionsMenuProps
 > = ({ setShowDeleteModal }: BlueprintActionsMenuProps) => {
+  const isOnPremise = useIsOnPremise();
   const [showBlueprintActionsMenu, setShowBlueprintActionsMenu] =
     useState(false);
   const onSelect = () => {
@@ -35,6 +44,7 @@ export const BlueprintActionsMenu: React.FunctionComponent<
   );
 
   const [trigger] = useLazyExportBlueprintQuery();
+  const [cockpitTrigger] = useLazyExportBlueprintCockpitQuery();
   const selectedBlueprintId = useAppSelector(selectSelectedBlueprintId);
   if (selectedBlueprintId === undefined) {
     return null;
@@ -43,7 +53,15 @@ export const BlueprintActionsMenu: React.FunctionComponent<
     trigger({ id: selectedBlueprintId })
       .unwrap()
       .then((response: BlueprintExportResponse) => {
-        handleExportBlueprint(response.name, response);
+        handleExportBlueprint(response.name, response, isOnPremise);
+      });
+  };
+
+  const handleCockpitClick = () => {
+    cockpitTrigger({ id: selectedBlueprintId })
+      .unwrap()
+      .then((response: CockpitExportResponse) => {
+        handleExportBlueprint(response.name, response, isOnPremise);
       });
   };
   return (
@@ -71,8 +89,8 @@ export const BlueprintActionsMenu: React.FunctionComponent<
     >
       <DropdownList>
         {importExportFlag && (
-          <DropdownItem onClick={handleClick}>
-            Download blueprint (.json) <BetaLabel />
+          <DropdownItem onClick={isOnPremise ? handleCockpitClick : handleClick}>
+            Download blueprint ({isOnPremise ? '.toml' : '.json'}) <BetaLabel />
           </DropdownItem>
         )}
         <DropdownItem onClick={() => setShowDeleteModal(true)}>
@@ -85,15 +103,53 @@ export const BlueprintActionsMenu: React.FunctionComponent<
 
 async function handleExportBlueprint(
   blueprintName: string,
-  blueprint: BlueprintExportResponse
+  blueprint: BlueprintExportResponse | CockpitExportResponse,
+  isOnPremise: boolean,
 ) {
-  const jsonData = JSON.stringify(blueprint, null, 2);
-  const blob = new Blob([jsonData], { type: 'application/json' });
+  let data: string;
+  if (isOnPremise) {
+    const tomlString = TOML.stringify(blueprint).trim();
+    // Add comment before custom groups section if groups exist
+    if (
+      'customizations' in blueprint &&
+      blueprint.customizations &&
+      (('groups' in blueprint.customizations &&
+        blueprint.customizations.groups &&
+        blueprint.customizations.groups.length > 0) ||
+        ('group' in blueprint.customizations &&
+          blueprint.customizations.group &&
+          blueprint.customizations.group.length > 0))
+    ) {
+      // Find the position of the first [[customizations.group]] and add comment before it
+      const groupIndex = tomlString.indexOf('[[customizations.group]]');
+      if (groupIndex !== -1) {
+        data =
+          tomlString.slice(0, groupIndex) +
+          '# Custom groups (defined by user)\n' +
+          tomlString.slice(groupIndex);
+      } else {
+        data = tomlString;
+      }
+    } else {
+      data = tomlString;
+    }
+  } else {
+    data = JSON.stringify(blueprint, null, 2);
+  }
+  const mime = isOnPremise ? 'application/octet-stream' : 'application/json';
+  const blob = new Blob([data], { type: mime });
 
   const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  // In cockpit we're running in an iframe, the current content-security policy
+  // (set in cockpit/public/manifest.json) only allows resources from the same origin as the
+  // document (which is unique to the iframe). So create the element in the parent document.
+  const link = isOnPremise
+    ? window.parent.document.createElement('a')
+    : document.createElement('a');
   link.href = url;
-  link.download = blueprintName.replace(/\s/g, '_').toLowerCase() + '.json';
+  link.download =
+    blueprintName.replace(/\s/g, '_').toLowerCase() +
+    (isOnPremise ? '.toml' : '.json');
   link.click();
   URL.revokeObjectURL(url);
 }

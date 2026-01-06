@@ -1,7 +1,11 @@
+import { RHEL_10 } from '../../../constants';
+import { Blueprint as CloudApiBlueprint } from '../../../store/cockpit/composerCloudApi';
 import {
   BlueprintExportResponse,
   Container,
+  CreateBlueprintRequest,
   Directory,
+  Disk,
   Distributions,
   Fdo,
   File,
@@ -14,6 +18,7 @@ import {
   Services,
   Timezone,
 } from '../../../store/imageBuilderApi';
+import { getHostDistro } from '../../../Utilities/getHostInfo';
 
 export type BlueprintOnPrem = {
   name: string;
@@ -62,11 +67,11 @@ export type CustomizationsOnPrem = {
   openscap?: OpenScap;
   filesystem?: FileSystemOnPrem[];
   services?: Services;
-  ssh_key?: SshKeyOnPrem[];
+  sshkey?: SshKeyOnPrem[];
   hostname?: string;
   kernel?: Kernel;
   user?: UserOnPrem[];
-  groups?: GroupOnPrem[];
+  group?: GroupOnPrem[];
   timezone?: Timezone;
   locale?: Locale;
   firewall?: FirewallCustomization;
@@ -81,11 +86,13 @@ export type CustomizationsOnPrem = {
 export type UserOnPrem = {
   name: string;
   key: string;
+  password: string;
+  groups: string[];
 };
 
 export type GroupOnPrem = {
   name: string;
-  gid: number;
+  gid: number | undefined;
 };
 
 export type SshKeyOnPrem = {
@@ -93,14 +100,16 @@ export type SshKeyOnPrem = {
   key: string;
 };
 
-export const mapOnPremToHosted = (
-  blueprint: BlueprintOnPrem
-): BlueprintExportResponse => {
+export const mapOnPremToHosted = async (
+  blueprint: BlueprintOnPrem,
+): Promise<BlueprintExportResponse> => {
   const users = blueprint.customizations?.user?.map((u) => ({
     name: u.name,
     ssh_key: u.key,
+    groups: u.groups,
+    isAdministrator: u.groups.includes('wheel') || false,
   }));
-  const user_keys = blueprint.customizations?.ssh_key?.map((k) => ({
+  const user_keys = blueprint.customizations?.sshkey?.map((k) => ({
     name: k.user,
     ssh_key: k.key,
   }));
@@ -108,14 +117,19 @@ export const mapOnPremToHosted = (
     blueprint.packages !== undefined
       ? blueprint.packages.map((p) => p.name)
       : undefined;
-  const groups =
-    blueprint.customizations?.groups !== undefined
-      ? blueprint.customizations.groups.map((p) => `@${p.name}`)
+  // Note: blueprint.groups refers to package groups (e.g., @development-tools),
+  // not user groups. User groups are in customizations.groups (see below).
+  const packageGroups =
+    blueprint.groups !== undefined
+      ? blueprint.groups.map((p) => `@${p.name}`)
       : undefined;
+  const distro = process.env.IS_ON_PREMISE
+    ? await getHostDistro()
+    : blueprint.distro || RHEL_10;
   return {
     name: blueprint.name,
     description: blueprint.description || '',
-    distribution: blueprint.distro,
+    distribution: distro,
     customizations: {
       ...blueprint.customizations,
       containers: blueprint.containers,
@@ -126,14 +140,20 @@ export const mapOnPremToHosted = (
         })
       ),
       packages:
-        packages !== undefined || groups !== undefined
-          ? [...(packages ? packages : []), ...(groups ? groups : [])]
+        packages !== undefined || packageGroups !== undefined
+          ? [
+              ...(packages ? packages : []),
+              ...(packageGroups ? packageGroups : []),
+            ]
           : undefined,
       users:
         users !== undefined || user_keys !== undefined
           ? [...(users ? users : []), ...(user_keys ? user_keys : [])]
           : undefined,
-      groups: blueprint.customizations?.groups,
+      groups: blueprint.customizations?.group?.map((grp: GroupOnPrem) => ({
+        name: grp.name,
+        ...(grp.gid !== undefined && { gid: grp.gid }),
+      })),
       filesystem: blueprint.customizations?.filesystem?.map(
         ({ minsize, ...fs }) => ({
           min_size: minsize,
@@ -168,4 +188,118 @@ export const mapOnPremToHosted = (
       is_on_prem: true,
     },
   };
+};
+
+export const mapHostedToOnPrem = (
+  blueprint: CreateBlueprintRequest,
+): CloudApiBlueprint => {
+  const result: CloudApiBlueprint = {
+    name: blueprint.name,
+    customizations: {},
+  };
+
+  if (blueprint.customizations.packages) {
+    result.packages = blueprint.customizations.packages.map((pkg) => {
+      return {
+        name: pkg,
+        version: '*',
+      };
+    });
+  }
+
+  if (blueprint.customizations.containers) {
+    result.containers = blueprint.customizations.containers;
+  }
+
+  if (blueprint.customizations.directories) {
+    result.customizations!.directories = blueprint.customizations.directories;
+  }
+
+  if (blueprint.customizations.files) {
+    result.customizations!.files = blueprint.customizations.files;
+  }
+
+  if (blueprint.customizations.filesystem) {
+    result.customizations!.filesystem = blueprint.customizations.filesystem.map(
+      (fs) => {
+        return {
+          mountpoint: fs.mountpoint,
+          minsize: fs.min_size,
+        };
+      },
+    );
+  }
+
+  if (blueprint.customizations.disk) {
+    result.customizations!.disk = blueprint.customizations.disk;
+  }
+
+  // Set groups before users to match UI order (groups are prerequisite for user assignment)
+  if (blueprint.customizations.groups) {
+    result.customizations!.group = blueprint.customizations.groups;
+  }
+
+  if (blueprint.customizations.users) {
+    result.customizations!.user = blueprint.customizations.users.map((u) => {
+      return {
+        name: u.name,
+        key: u.ssh_key || '',
+        groups: u.groups || [],
+        password: u.password || '',
+      };
+    });
+  }
+
+  if (blueprint.customizations.services) {
+    result.customizations!.services = blueprint.customizations.services;
+  }
+
+  if (blueprint.customizations.hostname) {
+    result.customizations!.hostname = blueprint.customizations.hostname;
+  }
+
+  if (blueprint.customizations.kernel) {
+    result.customizations!.kernel = blueprint.customizations.kernel;
+  }
+
+  if (blueprint.customizations.timezone) {
+    result.customizations!.timezone = blueprint.customizations.timezone;
+  }
+
+  if (blueprint.customizations.locale) {
+    result.customizations!.locale = blueprint.customizations.locale;
+  }
+
+  if (blueprint.customizations.firewall) {
+    result.customizations!.firewall = blueprint.customizations.firewall;
+  }
+
+  if (blueprint.customizations.installation_device) {
+    result.customizations!.installation_device =
+      blueprint.customizations.installation_device;
+  }
+
+  if (blueprint.customizations.fdo) {
+    result.customizations!.fdo = blueprint.customizations.fdo;
+  }
+
+  if (blueprint.customizations.ignition) {
+    result.customizations!.ignition = blueprint.customizations.ignition;
+  }
+
+  if (blueprint.customizations.partitioning_mode) {
+    result.customizations!.partitioning_mode =
+      blueprint.customizations.partitioning_mode;
+  }
+
+  if (blueprint.customizations.fips) {
+    result.customizations!.fips =
+      blueprint.customizations.fips.enabled || false;
+  }
+
+  if (blueprint.customizations.installer) {
+    result.customizations!.installer = blueprint.customizations.installer;
+  }
+
+  return result;
 };
