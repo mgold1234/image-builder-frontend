@@ -23,8 +23,6 @@ import {
   BlueprintExportResponse,
   useLazyExportBlueprintQuery,
 } from '../../store/imageBuilderApi';
-import { useFlagWithEphemDefault } from '../../Utilities/useGetEnvironment';
-import BetaLabel from '../sharedComponents/BetaLabel';
 
 interface BlueprintActionsMenuProps {
   setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -39,9 +37,6 @@ export const BlueprintActionsMenu: React.FunctionComponent<
   const onSelect = () => {
     setShowBlueprintActionsMenu(!showBlueprintActionsMenu);
   };
-  const importExportFlag = useFlagWithEphemDefault(
-    'image-builder.import.enabled'
-  );
 
   const [trigger] = useLazyExportBlueprintQuery();
   const [cockpitTrigger] = useLazyExportBlueprintCockpitQuery();
@@ -64,9 +59,9 @@ export const BlueprintActionsMenu: React.FunctionComponent<
         handleExportBlueprint(response.name, response, isOnPremise);
       });
   };
+
   return (
     <Dropdown
-      ouiaId={`blueprints-dropdown`}
       isOpen={showBlueprintActionsMenu}
       onSelect={onSelect}
       onOpenChange={(showBlueprintActionsMenu: boolean) =>
@@ -78,21 +73,17 @@ export const BlueprintActionsMenu: React.FunctionComponent<
           ref={toggleRef}
           isExpanded={showBlueprintActionsMenu}
           onClick={() => setShowBlueprintActionsMenu(!showBlueprintActionsMenu)}
-          variant="plain"
-          aria-label="blueprint menu toggle"
-          data-testid="blueprint-action-menu-toggle"
-          isDisabled={selectedBlueprintId === undefined}
+          variant='plain'
+          aria-label='blueprint menu toggle'
         >
-          <EllipsisVIcon aria-hidden="true" />
+          <EllipsisVIcon aria-hidden='true' />
         </MenuToggle>
       )}
     >
       <DropdownList>
-        {importExportFlag && (
-          <DropdownItem onClick={isOnPremise ? handleCockpitClick : handleClick}>
-            Download blueprint ({isOnPremise ? '.toml' : '.json'}) <BetaLabel />
-          </DropdownItem>
-        )}
+        <DropdownItem onClick={isOnPremise ? handleCockpitClick : handleClick}>
+          Download blueprint ({isOnPremise ? '.toml' : '.json'})
+        </DropdownItem>
         <DropdownItem onClick={() => setShowDeleteModal(true)}>
           Delete blueprint
         </DropdownItem>
@@ -108,18 +99,39 @@ async function handleExportBlueprint(
 ) {
   let data: string;
   if (isOnPremise) {
-    const tomlString = TOML.stringify(blueprint).trim();
-    // Add comment before custom groups section if groups exist
+    // Convert groups (plural) to group (singular) for on-premise TOML format
+    const blueprintForToml = { ...blueprint };
+    let hasGroups = false;
     if (
-      'customizations' in blueprint &&
-      blueprint.customizations &&
-      (('groups' in blueprint.customizations &&
-        blueprint.customizations.groups &&
-        blueprint.customizations.groups.length > 0) ||
-        ('group' in blueprint.customizations &&
-          blueprint.customizations.group &&
-          blueprint.customizations.group.length > 0))
+      'customizations' in blueprintForToml &&
+      blueprintForToml.customizations
     ) {
+      // Check if groups exist (plural) or group exists (singular)
+      if (
+        'groups' in blueprintForToml.customizations &&
+        blueprintForToml.customizations.groups &&
+        blueprintForToml.customizations.groups.length > 0
+      ) {
+        // Convert groups to group for TOML export
+        hasGroups = true;
+        blueprintForToml.customizations = {
+          ...blueprintForToml.customizations,
+          group: blueprintForToml.customizations.groups,
+        };
+        // Remove groups property
+        const { groups, ...restCustomizations } = blueprintForToml.customizations;
+        blueprintForToml.customizations = restCustomizations;
+      } else if (
+        'group' in blueprintForToml.customizations &&
+        blueprintForToml.customizations.group &&
+        blueprintForToml.customizations.group.length > 0
+      ) {
+        hasGroups = true;
+      }
+    }
+    const tomlString = TOML.stringify(blueprintForToml).trim();
+    // Add comment before custom groups section if groups exist
+    if (hasGroups) {
       // Find the position of the first [[customizations.group]] and add comment before it
       const groupIndex = tomlString.indexOf('[[customizations.group]]');
       if (groupIndex !== -1) {

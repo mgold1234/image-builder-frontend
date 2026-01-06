@@ -20,12 +20,15 @@ import {
 } from '../../../store/imageBuilderApi';
 import { getHostDistro } from '../../../Utilities/getHostInfo';
 
+// Blueprint as defined by the osbuild-composer cloudapi's /compose
+// endpoint.
+
 export type BlueprintOnPrem = {
   name: string;
   description?: string;
   packages?: PackagesOnPrem[];
   groups?: GroupsPackagesOnPrem[];
-  distro: Distributions;
+  distro?: Distributions;
   customizations?: CustomizationsOnPrem;
   containers?: Container[];
 };
@@ -42,6 +45,8 @@ export type GroupsPackagesOnPrem = {
 export type FileSystemOnPrem = {
   mountpoint: string;
   minsize: number | undefined;
+  // size is still accepted for backwards compatibility
+  size: number | undefined;
 };
 
 export type CustomRepositoryOnPrem = {
@@ -66,11 +71,13 @@ export type CustomizationsOnPrem = {
   repositories?: CustomRepositoryOnPrem[];
   openscap?: OpenScap;
   filesystem?: FileSystemOnPrem[];
+  disk?: Disk;
   services?: Services;
   sshkey?: SshKeyOnPrem[];
   hostname?: string;
   kernel?: Kernel;
   user?: UserOnPrem[];
+  groups?: GroupOnPrem[];
   group?: GroupOnPrem[];
   timezone?: Timezone;
   locale?: Locale;
@@ -102,7 +109,41 @@ export type SshKeyOnPrem = {
 
 export const mapOnPremToHosted = async (
   blueprint: BlueprintOnPrem,
-): Promise<BlueprintExportResponse> => {
+): Promise<{
+  name: string; description: string; distribution: any; customizations: {
+    containers: Container[] | undefined;
+    custom_repositories: {
+      baseurl: string[] | undefined;
+      id: string;
+      name?: string;
+      filename?: string;
+      mirrorlist?: string;
+      metalink?: string;
+      gpgkey?: string[];
+      check_gpg?: boolean;
+      check_repo_gpg?: boolean;
+      enabled?: boolean;
+      priority?: number;
+      ssl_verify?: boolean;
+      module_hotfixes?: boolean
+    }[] | undefined;
+    packages: string[] | undefined;
+    users: ({ name: string; ssh_key: string; groups: string[]; isAdministrator: boolean } | {
+      name: string;
+      ssh_key: string
+    })[] | undefined;
+    groups: { name: string }[] | undefined;
+    filesystem: { min_size: number | undefined; mountpoint: string }[] | undefined;
+    disk: | undefined;
+    fips: { enabled: boolean } | undefined;
+    timezone: { timezone: string | undefined; ntpservers: string[] | undefined } | undefined;
+    locale: { languages: string[] | undefined; keyboard: string | undefined } | undefined;
+    hostname: string | undefined;
+    kernel: { name: string | undefined; append: string | undefined } | undefined;
+    firewall: FirewallCustomization | undefined;
+    services: Services | undefined
+  }; metadata: { parent_id: null; exported_at: string; is_on_prem: boolean }
+}> => {
   const users = blueprint.customizations?.user?.map((u) => ({
     name: u.name,
     ssh_key: u.key,
@@ -150,20 +191,21 @@ export const mapOnPremToHosted = async (
         users !== undefined || user_keys !== undefined
           ? [...(users ? users : []), ...(user_keys ? user_keys : [])]
           : undefined,
-      groups: blueprint.customizations?.group?.map((grp: GroupOnPrem) => ({
+      groups: (blueprint.customizations?.groups || blueprint.customizations?.group)?.map((grp: GroupOnPrem) => ({
         name: grp.name,
         ...(grp.gid !== undefined && { gid: grp.gid }),
       })),
       filesystem: blueprint.customizations?.filesystem?.map(
-        ({ minsize, ...fs }) => ({
-          min_size: minsize,
+        ({ minsize, size, ...fs }) => ({
+          min_size: minsize || size,
           ...fs,
-        })
+        }),
       ),
+      disk: blueprint.customizations?.disk || undefined,
       fips:
         blueprint.customizations?.fips !== undefined
           ? {
-              enabled: blueprint.customizations?.fips,
+              enabled: blueprint.customizations.fips,
             }
           : undefined,
       timezone:
@@ -181,6 +223,15 @@ export const mapOnPremToHosted = async (
             }
           : undefined,
       hostname: blueprint.customizations?.hostname || undefined,
+      kernel:
+        blueprint.customizations?.kernel !== undefined
+          ? {
+              name: blueprint.customizations.kernel.name,
+              append: blueprint.customizations.kernel.append,
+            }
+          : undefined,
+      firewall: blueprint.customizations?.firewall || undefined,
+      services: blueprint.customizations?.services || undefined,
     },
     metadata: {
       parent_id: null,
