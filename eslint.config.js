@@ -120,7 +120,6 @@ module.exports = defineConfig([
         },
       ],
       'jsx-a11y/no-autofocus': 'off',
-      'react-hooks/set-state-in-effect': 'warn', // TODO address issues and enable the rule
       'prettier/prettier': ['error', {
         semi: true,
         tabWidth: 2,
