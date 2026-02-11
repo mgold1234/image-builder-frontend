@@ -1,6 +1,7 @@
 import type { Router as RemixRouter } from '@remix-run/router';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useFlag } from '@unleash/proxy-client-react';
 import { http, HttpResponse } from 'msw';
 
 import {
@@ -349,6 +350,7 @@ describe('Check that the target filtering is in accordance to mock content', () 
     expect(images_types).toContain('oci');
     expect(images_types).toContain('guest-image');
     expect(images_types).toContain('image-installer');
+    expect(images_types).toContain('network-installer');
     expect(images_types).toContain('wsl');
 
     // make sure the UX conforms to the mocks
@@ -386,6 +388,7 @@ describe('Check that the target filtering is in accordance to mock content', () 
     expect(images_types).toContain('oci');
     expect(images_types).toContain('guest-image');
     expect(images_types).toContain('image-installer');
+    expect(images_types).toContain('network-installer');
     expect(images_types).toContain('vsphere');
     expect(images_types).toContain('vsphere-ova');
     expect(images_types).not.toContain('wsl');
@@ -473,6 +476,7 @@ describe('Check that the target filtering is in accordance to mock content', () 
     expect(images_types).not.toContain('oci');
     expect(images_types).toContain('guest-image');
     expect(images_types).toContain('image-installer');
+    expect(images_types).toContain('network-installer');
     expect(images_types).not.toContain('vsphere');
     expect(images_types).not.toContain('vsphere-ova');
     expect(images_types).not.toContain('wsl');
@@ -528,6 +532,7 @@ describe('Check that the target filtering is in accordance to mock content', () 
     expect(images_types).not.toContain('oci');
     expect(images_types).toContain('guest-image');
     expect(images_types).toContain('image-installer');
+    expect(images_types).toContain('network-installer');
     expect(images_types).not.toContain('vsphere');
     expect(images_types).not.toContain('vsphere-ova');
     expect(images_types).not.toContain('wsl');
@@ -926,5 +931,139 @@ describe('Image output edit mode', () => {
     );
     const expectedRequest = aarch64CreateBlueprintRequest;
     expect(receivedRequest).toEqual(expectedRequest);
+  });
+});
+
+const enableNetworkInstallerFlag = () => {
+  vi.mocked(useFlag).mockImplementation((flag) => {
+    switch (flag) {
+      case 'image-builder.net-installer':
+        return true;
+      case 'image-builder.layered-repos.enabled':
+        return true;
+      default:
+        return false;
+    }
+  });
+};
+
+describe('Network installer', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test('selecting network installer enables the Next button', async () => {
+    enableNetworkInstallerFlag();
+    await renderCreateMode();
+
+    const nextButton = await getNextButton();
+    await waitFor(() => expect(nextButton).toBeDisabled());
+
+    const user = userEvent.setup();
+    const networkInstallerCheckbox = await screen.findByRole('checkbox', {
+      name: /Network - Installer/i,
+    });
+    await waitFor(() => user.click(networkInstallerCheckbox));
+    await waitFor(() => expect(nextButton).toBeEnabled());
+  });
+
+  test('deselecting network installer disables the Next button', async () => {
+    enableNetworkInstallerFlag();
+    await renderCreateMode();
+
+    const nextButton = await getNextButton();
+    const user = userEvent.setup();
+    const networkInstallerCheckbox = await screen.findByRole('checkbox', {
+      name: /Network - Installer/i,
+    });
+
+    await waitFor(() => user.click(networkInstallerCheckbox)); // select
+    await waitFor(() => expect(nextButton).toBeEnabled());
+    await waitFor(() => user.click(networkInstallerCheckbox)); // deselect
+    await waitFor(() => expect(nextButton).toBeDisabled());
+  });
+
+  test('network installer is present in mock data for rhel10 x86_64', async () => {
+    let imageTypes: string[] = [];
+    mockArchitecturesByDistro(RHEL_10).forEach((elem) => {
+      if (elem.arch === X86_64) {
+        imageTypes = elem.image_types;
+      }
+    });
+    expect(imageTypes).toContain('network-installer');
+  });
+
+  test('network installer is present in mock data for rhel10 aarch64', async () => {
+    let imageTypes: string[] = [];
+    mockArchitecturesByDistro(RHEL_10).forEach((elem) => {
+      if (elem.arch === AARCH64) {
+        imageTypes = elem.image_types;
+      }
+    });
+    expect(imageTypes).toContain('network-installer');
+  });
+
+  test('network installer is present in mock data for rhel9 x86_64', async () => {
+    let imageTypes: string[] = [];
+    mockArchitecturesByDistro(RHEL_9).forEach((elem) => {
+      if (elem.arch === X86_64) {
+        imageTypes = elem.image_types;
+      }
+    });
+    expect(imageTypes).toContain('network-installer');
+  });
+
+  test('blueprint request includes network-installer image type', async () => {
+    enableNetworkInstallerFlag();
+    await renderCreateMode();
+
+    const user = userEvent.setup();
+    const networkInstallerCheckbox = await screen.findByRole('checkbox', {
+      name: /Network - Installer/i,
+    });
+    await waitFor(() => user.click(networkInstallerCheckbox));
+
+    await handleRegistration();
+    await goToStep(/Details/);
+    await enterNameAndGoToReviewStep();
+    const receivedRequest = await interceptBlueprintRequest(CREATE_BLUEPRINT);
+
+    const expectedImageRequest: ImageRequest = {
+      ...imageRequest,
+      image_type: 'network-installer',
+    };
+    const expectedRequest: CreateBlueprintRequest = {
+      ...blueprintRequest,
+      image_requests: [expectedImageRequest],
+    };
+
+    expect(receivedRequest).toEqual(expectedRequest);
+  });
+
+  test('can select network installer alongside other targets', async () => {
+    enableNetworkInstallerFlag();
+    await renderCreateMode();
+
+    const user = userEvent.setup();
+    const networkInstallerCheckbox = await screen.findByRole('checkbox', {
+      name: /Network - Installer/i,
+    });
+    await waitFor(() => user.click(networkInstallerCheckbox));
+
+    await selectGuestImageTarget();
+
+    await handleRegistration();
+    await goToStep(/Details/);
+    await enterNameAndGoToReviewStep();
+    const receivedRequest = (await interceptBlueprintRequest(
+      CREATE_BLUEPRINT,
+    )) as CreateBlueprintRequest;
+
+    expect(receivedRequest.image_requests).toHaveLength(2);
+    const imageTypes = receivedRequest.image_requests.map(
+      (r: ImageRequest) => r.image_type,
+    );
+    expect(imageTypes).toContain('network-installer');
+    expect(imageTypes).toContain('guest-image');
   });
 });

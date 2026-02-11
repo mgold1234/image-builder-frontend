@@ -13,6 +13,7 @@ export const mockArchitecturesByDistro = (
           'gcp',
           'guest-image',
           'image-installer',
+          'network-installer',
           'oci',
           'wsl',
         ],
@@ -26,7 +27,12 @@ export const mockArchitecturesByDistro = (
       },
       {
         arch: 'aarch64',
-        image_types: ['aws', 'guest-image', 'image-installer'],
+        image_types: [
+          'aws',
+          'guest-image',
+          'image-installer',
+          'network-installer',
+        ],
         repositories: [
           {
             baseurl:
@@ -50,6 +56,7 @@ export const mockArchitecturesByDistro = (
           'edge-installer',
           'guest-image',
           'image-installer',
+          'network-installer',
           'vsphere',
           'vsphere-ova',
         ],
@@ -63,7 +70,12 @@ export const mockArchitecturesByDistro = (
       },
       {
         arch: 'aarch64',
-        image_types: ['aws', 'guest-image', 'image-installer'],
+        image_types: [
+          'aws',
+          'guest-image',
+          'image-installer',
+          'network-installer',
+        ],
         repositories: [
           {
             baseurl:
