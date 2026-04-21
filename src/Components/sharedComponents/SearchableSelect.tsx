@@ -39,6 +39,11 @@ const SearchableSelect = ({
   const toggleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const selectedLabel = useMemo(
+    () => options.find((opt) => opt.value === selected)?.label,
+    [options, selected],
+  );
+
   const filteredOptions = useMemo(() => {
     if (!searchValue) {
       return options;
@@ -68,7 +73,7 @@ const SearchableSelect = ({
       onClick={() => setIsOpen(!isOpen)}
       isExpanded={isOpen}
     >
-      {selected || placeholder}
+      {selectedLabel || selected || placeholder}
     </MenuToggle>
   );
 
