@@ -901,6 +901,22 @@ echo 'Hello there, General Kenobi!'`;
       expect(screen.getByText('guest')).toBeInTheDocument();
       expect(screen.getAllByText('*****')).toHaveLength(3);
     });
+
+    test('does not render users section in on-prem image mode', () => {
+      renderWithRedux(
+        <AdvancedSettingsOverview restrictions={createDefaultRestrictions()} />,
+        {
+          imageTypes: ['guest-image'],
+          blueprintMode: 'image',
+          users: [adminUser],
+        },
+        {
+          preloadedState: { env: { isOnPremise: true } },
+        },
+      );
+
+      expect(screen.queryByText('Users')).not.toBeInTheDocument();
+    });
   });
 
   describe('Firewall', () => {

@@ -2,6 +2,9 @@ import React from 'react';
 
 import { Card, CardBody } from '@patternfly/react-core';
 
+import { useAppSelector } from '@/store/hooks';
+import { selectIsImageMode, selectIsOnPremise } from '@/store/slices';
+
 import {
   Filesystem,
   Firewall,
@@ -33,6 +36,8 @@ const AdvancedSettingsOverview = ({
   oscapKernelArgs = [],
   oscapServices,
 }: AdvancedSettingsOverviewProps) => {
+  const isOnPremise = useAppSelector(selectIsOnPremise);
+  const isImageMode = useAppSelector(selectIsImageMode);
   return (
     <Card>
       <ReviewCardHeader
@@ -54,7 +59,9 @@ const AdvancedSettingsOverview = ({
             oscapServices={oscapServices}
           />
           <Firewall shouldHide={restrictions.firewall.shouldHide} />
-          <Users shouldHide={restrictions.users.shouldHide} />
+          {!(isOnPremise && isImageMode) && (
+            <Users shouldHide={restrictions.users.shouldHide} />
+          )}
           <Firstboot shouldHide={restrictions.firstBoot.shouldHide} />
         </ReviewList>
       </CardBody>

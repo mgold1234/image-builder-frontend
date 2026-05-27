@@ -5,6 +5,7 @@ import { screen } from '@testing-library/react';
 import { RHEL_10, X86_64 } from '@/constants';
 import { renderWithRedux } from '@/test/testUtils';
 
+import { adminUser } from '../../AdvancedSettings/tests/mocks';
 import ImageOverview from '../index';
 
 describe('ImageOverview', () => {
@@ -228,6 +229,50 @@ describe('ImageOverview', () => {
       expect(
         screen.queryByText('Miscellaneous formats'),
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Users', () => {
+    test('displays users section in on-prem image mode', () => {
+      renderWithRedux(
+        <ImageOverview />,
+        {
+          imageTypes: ['guest-image'],
+          blueprintMode: 'image',
+          users: [adminUser],
+        },
+        {
+          preloadedState: { env: { isOnPremise: true } },
+        },
+      );
+
+      expect(screen.getByText('Users')).toBeInTheDocument();
+      expect(screen.getByText('admin')).toBeInTheDocument();
+    });
+
+    test('does not display users section in hosted mode', () => {
+      renderWithRedux(<ImageOverview />, {
+        imageTypes: ['guest-image'],
+        users: [adminUser],
+      });
+
+      expect(screen.queryByText('Users')).not.toBeInTheDocument();
+    });
+
+    test('does not display users section in on-prem package mode', () => {
+      renderWithRedux(
+        <ImageOverview />,
+        {
+          imageTypes: ['guest-image'],
+          blueprintMode: 'package',
+          users: [adminUser],
+        },
+        {
+          preloadedState: { env: { isOnPremise: true } },
+        },
+      );
+
+      expect(screen.queryByText('Users')).not.toBeInTheDocument();
     });
   });
 });
